@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
+import "forge-std/console.sol";
 contract RouletteGame {
     address public owner;
     uint256 public minimumBet = 1000;
@@ -140,7 +140,7 @@ contract RouletteGame {
     function spinRoulette() public returns(uint winningNumber,uint totalWin) {
         require(bets.length > 0,"need to place a bet before");
         Bet memory lb = bets[bets.length-1];
-        winningNumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, lb.betType, lb.player))) % 37;
+        winningNumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, lb.betType, lb.player,blockhash(block.number - 1)))) % 37;
         for (uint256 i = 0; i < bets.length; i++) {
             
             // spinDetail[bets[i].player].winningNumber = winningNumber;
@@ -198,10 +198,9 @@ contract RouletteGame {
     }
         // enum BetType { Split, Street, Corner, SixLine, Single, Trio, RedBlack, Column, Dozen, Eighteen, EvenOdd }
 
-    function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private pure returns (bool won) {
-   
+    function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private  returns (bool won) {
+        won = false;
         for (uint256 i = 0; i < numbers.length; i++) {
-            won = false;
             uint256 number = numbers[i];
             if (winningNumber == 0){
                 won = (betType == BetType.Single && number == 0);                   /* bet on 0 */
@@ -239,8 +238,8 @@ contract RouletteGame {
                     won = numbers[i] == winningNumber;                            /* bet on Split, Street, Corner, SixLine, Single, Trio*/
                 }
             }
-            return won;
         }
+        return won;
     }
 
     function getContractBalance() external view returns (uint256) {
