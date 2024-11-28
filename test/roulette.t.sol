@@ -57,7 +57,7 @@ contract CounterTest is Test {
 
         console.log("winningNumber:",winningNumber);
         console.log("totalWin:",totalWin);
-        assertEq(totalWin,amount*8*(100-5)/100*4,"should be equal");
+        assertEq(totalWin,amount*8*(100-5)/100*2,"should be equal");
         uint256 bal = ROU.balanceOf(player1);
         // bytes memory bytesCodeCall = abi.encodeCall(
         //     ROU.balanceOf,

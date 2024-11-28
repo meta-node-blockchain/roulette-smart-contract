@@ -139,7 +139,7 @@ contract RouletteGame {
     function spinRoulette() public returns(uint winningNumber,uint totalWin) {
         require(bets.length > 0,"need to place a bet before");
         Bet memory lb = bets[bets.length-1];
-        winningNumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, lb.betType, lb.player,blockhash(block.number - 1)))) % 37;
+        winningNumber = uint(keccak256(abi.encodePacked(block.timestamp, lb.betType, lb.player))) % 37;
         for (uint256 i = 0; i < bets.length; i++) {
             // spinDetail[bets[i].player].winningNumber = winningNumber;
             if (betWins(bets[i].betType, bets[i].numbers, winningNumber)) {
@@ -196,52 +196,60 @@ contract RouletteGame {
     }
         // enum BetType { Split, Street, Corner, SixLine, Single, Trio, RedBlack, Column, Dozen, Eighteen, EvenOdd }
 
-    function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private pure  returns (bool won) {
-        won = false;
-        for (uint256 i = 0; i < numbers.length; i++) {
-            uint256 number = numbers[i];
-            if (winningNumber == 0){
-                won = (betType == BetType.Single && number == 0);                   /* bet on 0 */
-            }else{
-                if (betType == BetType.RedBlack){
-                    if (number == 0) {                                     /* bet on black */
-                        if (winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) {
-                            won = (winningNumber % 2 == 0);
-                        } else {
-                            won = (winningNumber % 2 == 1);
-                        }
-                    } else {                                                 /* bet on red */
-                        if (winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) {
-                            won = (winningNumber % 2 == 1);
-                        } else {
-                            won = (winningNumber % 2 == 0);
-                        }
-                    }
-                } else if (betType == BetType.EvenOdd ) {
-                    if (number == 0) won = (winningNumber % 2 == 0);              /* bet on even */
-                    if (number == 1) won = (winningNumber % 2 == 1);              /* bet on odd */
+function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private pure returns (bool) {
+    for (uint256 i = 0; i < numbers.length; i++) {
+        uint256 number = numbers[i];
 
-                } else if (betType == BetType.Eighteen) {
-                    if (number == 0) won = (winningNumber <= 18);                 /* bet on low 18s */
-                    if (number == 1) won = (winningNumber >= 19);                 /* bet on high 18s */
-                } else if (betType == BetType.Dozen) {
-                    if (number == 0) won = (winningNumber <= 12);                 /* bet on 1st dozen */
-                    if (number == 1) won = (winningNumber > 12 && winningNumber <= 24);  /* bet on 2nd dozen */
-                    if (number == 2) won = (winningNumber > 24);                  /* bet on 3rd dozen */
-                } else if (betType == BetType.Column) {
-                    if (number == 0) won = (winningNumber % 3 == 1);              /* bet on left column */
-                    if (number == 1) won = (winningNumber % 3 == 2);              /* bet on middle column */
-                    if (number == 2) won = (winningNumber % 3 == 0);              /* bet on right column */   
-                } else{
-                    won = numbers[i] == winningNumber;                            /* bet on Split, Street, Corner, SixLine, Single, Trio*/
+        if (winningNumber == 0) {
+            if (betType == BetType.Single && number == 0) {
+                return true; // Winning bet on 0
+            }
+        } else {
+            if (betType == BetType.RedBlack) {
+                if (number == 0) { // Bet on black
+                    if ((winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) && winningNumber % 2 == 0) {
+                        return true; 
+                    } 
+                    if (!(winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) && winningNumber % 2 == 1) {
+                        return true; 
+                    }
+                } else { // Bet on red
+                    if ((winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) && winningNumber % 2 == 1) {
+                        return true; 
+                    } 
+                    if (!(winningNumber <= 10 || (winningNumber >= 20 && winningNumber <= 28)) && winningNumber % 2 == 0) {
+                        return true; 
+                    }
+                }
+            } else if (betType == BetType.EvenOdd) {
+                if ((number == 0 && winningNumber % 2 == 0) || (number == 1 && winningNumber % 2 == 1)) {
+                    return true;
+                }
+            } else if (betType == BetType.Eighteen) {
+                if ((number == 0 && winningNumber <= 18) || (number == 1 && winningNumber >= 19)) {
+                    return true;
+                }
+            } else if (betType == BetType.Dozen) {
+                if ((number == 0 && winningNumber <= 12) ||
+                    (number == 1 && winningNumber > 12 && winningNumber <= 24) ||
+                    (number == 2 && winningNumber > 24)) {
+                    return true;
+                }
+            } else if (betType == BetType.Column) {
+                if ((number == 0 && winningNumber % 3 == 1) ||
+                    (number == 1 && winningNumber % 3 == 2) ||
+                    (number == 2 && winningNumber % 3 == 0)) {
+                    return true;
+                }
+            } else {
+                if (numbers[i] == winningNumber) {
+                    return true;
                 }
             }
-            if(won == true){
-                break;     
-            }
         }
-        return won;
     }
+    return false; // No winning condition met
+}
 
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
