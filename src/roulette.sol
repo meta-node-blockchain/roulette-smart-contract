@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "forge-std/console.sol";
 contract RouletteGame {
     address public owner;
     uint256 public minimumBet = 1000;
@@ -142,7 +141,6 @@ contract RouletteGame {
         Bet memory lb = bets[bets.length-1];
         winningNumber = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, lb.betType, lb.player,blockhash(block.number - 1)))) % 37;
         for (uint256 i = 0; i < bets.length; i++) {
-            
             // spinDetail[bets[i].player].winningNumber = winningNumber;
             if (betWins(bets[i].betType, bets[i].numbers, winningNumber)) {
                 bets[i].isWin = true;
@@ -198,7 +196,7 @@ contract RouletteGame {
     }
         // enum BetType { Split, Street, Corner, SixLine, Single, Trio, RedBlack, Column, Dozen, Eighteen, EvenOdd }
 
-    function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private  returns (bool won) {
+    function betWins(BetType betType, uint256[] memory numbers, uint256 winningNumber) private pure  returns (bool won) {
         won = false;
         for (uint256 i = 0; i < numbers.length; i++) {
             uint256 number = numbers[i];
@@ -237,6 +235,9 @@ contract RouletteGame {
                 } else{
                     won = numbers[i] == winningNumber;                            /* bet on Split, Street, Corner, SixLine, Single, Trio*/
                 }
+            }
+            if(won == true){
+                break;     
             }
         }
         return won;

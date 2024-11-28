@@ -25,16 +25,52 @@ contract CounterTest is Test {
         RouletteGame.BetType betType = RouletteGame.BetType.Corner;
         uint[][] memory numbersArr = getCornerBets();
         uint count = numbersArr.length;
+        bytes memory bytesCodeCall;
         for(uint256 i; i<count ;i++){
             ROU.placeBet{value : amount}(betType, numbersArr[i]);
+            bytesCodeCall = abi.encodeCall(
+            ROU.placeBet,
+            (
+                betType,
+                numbersArr[i]
+            )
+        );
+        // console.log("placeBet:");
+        // console.logBytes(bytesCodeCall);
+        // console.log(
+        //     "-----------------------------------------------------------------------------"
+        // );  
+
         }
         console.log("bal player:",player1.balance);
         assertEq(player1.balance,1 ether - count*amount,"should be equal");
         //spin
         (uint winningNumber,uint totalWin) = ROU.spinRoulette();
+        // bytesCodeCall = abi.encodeCall(
+        //     ROU.spinRoulette,()
+        // );
+        // console.log("spinRoulette:");
+        // console.logBytes(bytesCodeCall);
+        // console.log(
+        //     "-----------------------------------------------------------------------------"
+        // );  
+
         console.log("winningNumber:",winningNumber);
-        assertEq(totalWin,amount*8*(100-5)/100,"should be equal");
+        console.log("totalWin:",totalWin);
+        assertEq(totalWin,amount*8*(100-5)/100*4,"should be equal");
         uint256 bal = ROU.balanceOf(player1);
+        // bytes memory bytesCodeCall = abi.encodeCall(
+        //     ROU.balanceOf,
+        //     (
+        //         0x1e9Cb41f602FFAF37A138667709914089e8A7595
+        //     )
+        // );
+        // console.log("balanceOf:");
+        // console.logBytes(bytesCodeCall);
+        // console.log(
+        //     "-----------------------------------------------------------------------------"
+        // );  
+
         assertEq(bal,totalWin,"should be equal");
         ROU.cashOut();
         bal = ROU.balanceOf(player1);
